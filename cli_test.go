@@ -3,6 +3,7 @@ package goxz
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -74,6 +75,10 @@ func TestCliRun(t *testing.T) {
 			cl := &cli{outStream: ioutil.Discard, errStream: ioutil.Discard}
 			tmpd := setup(t)
 			defer os.RemoveAll(tmpd)
+			m := []byte("module \"github.com/Songmu/goxz/test\"\n")
+			if err := ioutil.WriteFile(filepath.Join(tmpd, "/go.mod"), m, 0644); err != nil {
+				t.Fatal(err)
+			}
 			args := append([]string{"-d=" + tmpd}, tc.input...)
 			err := cl.run(args)
 			if tc.errStr == "" {
@@ -93,7 +98,7 @@ func TestCliRun(t *testing.T) {
 			}
 			var outs []string
 			for _, f := range files {
-				if !f.IsDir() {
+				if !f.IsDir() && (f.Name() != "go.mod" && f.Name() != "go.sum") {
 					outs = append(outs, f.Name())
 				}
 			}
